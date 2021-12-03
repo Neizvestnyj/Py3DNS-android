@@ -15,6 +15,7 @@ import socket, string, types, time, select
 import errno
 from . import Type,Class,Opcode
 import asyncore
+import os
 #
 # This random generator is used for transaction ids and port selection.  This
 # is important to prevent spurious results from lost packets, and malicious
@@ -49,9 +50,13 @@ defaults= { 'protocol':'udp', 'port':53, 'opcode':Opcode.QUERY,
             'server': [] }
 
 def ParseResolvConf(resolv_path="/etc/resolv.conf"):
-    "parses the /etc/resolv.conf file and sets defaults for name servers"
-    with open(resolv_path, 'r') as stream:
-        return ParseResolvConfFromIterable(stream)
+    if os.path.exists(resolv_path):
+        "parses the /etc/resolv.conf file and sets defaults for name servers"
+        with open(resolv_path, 'r') as stream:
+            return ParseResolvConfFromIterable(stream)
+    else:
+        defaults['server'].append('127.0.0.1')
+        return
 
 def ParseResolvConfFromIterable(lines):
     "parses a resolv.conf formatted stream and sets defaults for name servers"
@@ -477,4 +482,3 @@ def ParseOSXSysConfig():
     # Someday: Figure out if we should do something other than simply concatenate the sets.
     for currentset in sets:
         defaults['server'].extend(currentset)
-
